@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Drush worker for Advanced queues.
+ * Drush worker for Advanced-queue.
  */
 
 /**
- * Implementation of hook_drush_command().
+ * Implements hook_drush_command().
  */
 function advancedqueue_drush_command() {
   $items = array();
@@ -19,6 +19,7 @@ function advancedqueue_drush_command() {
       'timeout' => 'The maximum execution time of the script. Be warned that this is a rough estimate as the time is only checked between two items.',
       'all' => 'Process all queues.',
     ),
+    'aliases' => array('advancedqueue'),
   );
   return $items;
 }
@@ -99,7 +100,7 @@ function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $ite
   $params =  array(
     '@queue' => $queue_name,
     '@id' => $item->item_id,
-    '@title' => $item->title ? $item->title : dt('untitled'),
+    '@title' => !empty($item->title) ? $item->title : dt('untitled'),
   );
   drush_log(dt('[@queue:@id] Starting processing item @title.', $params));
 
@@ -108,25 +109,24 @@ function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $ite
     // callback.
     $output = $function($item, $end_time);
     if (is_array($output)) {
-      $item->status = $output[0];
-      $item->result = $output[1];
+      $item->status = $output['status'];
+      $item->result = $output['result'];
     }
     else {
-      // TODO: remove magic constants.
-      $item->status = $output ? 1 : 2;
+      $item->status = $output ? ADVANCEDQUEUE_STATUS_SUCCESS : ADVANCEDQUEUE_STATUS_FAILURE;
     }
   }
   catch (Exception $e) {
+    $item->status = ADVANCEDQUEUE_STATUS_FAILURE;
     $params['!message'] = (string) $e;
     drush_log(dt('[!queue:!id] failed processing: !message', $params));
-    // TODO: remove magic constants.
-    $item->status = 2;
   }
 
   drush_log(dt('[@queue:@id] Processing ended.', $params));
 
   if ($queue_info['delete when completed']) {
-    // Item was processed, so we can delete it.
+    // Item was processed, so we can "delete" it. This is not removing the
+    // item from the database, but rather updates it with the status.
     $queue->deleteItem($item);
   }
 }

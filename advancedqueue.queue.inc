@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * Defintion of AdvancedQueue.
+ */
+
+/**
  * Extended queue.
  */
 class AdvancedQueue implements DrupalReliableQueueInterface {
