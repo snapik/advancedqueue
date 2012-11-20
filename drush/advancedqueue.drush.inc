@@ -29,9 +29,9 @@ function drush_advancedqueue_process_queue() {
   drupal_alter('advanced_queue_info', $all_queue_info);
   uasort($all_queue_info, 'drupal_sort_weight');
 
-  $all_option = (bool) drush_get_option('all');
-  $queues = func_get_args();
-  if (!($all_option xor !empty($queues))) {
+  $all_option = drush_get_option('all');
+  $queues = drush_get_option('queue');
+  if (!$all_option && !$queues) {
     return drush_set_error(dt('You have to specify either a set of queues or the --all parameter.'));
   }
 
@@ -48,6 +48,10 @@ function drush_advancedqueue_process_queue() {
     $queues = array_intersect_key($all_queue_info, $queues);
   }
 
+  if (!$queues) {
+    return drush_set_error(dt('No queues exist.'));
+  }
+
   // Run the worker for a certain period of time before killing it.
   $timeout = drush_get_option('timeout');
   $end = $timeout ? time() + $timeout : 0;
@@ -56,27 +60,53 @@ function drush_advancedqueue_process_queue() {
 
   while (!$end || time() < $end) {
     foreach ($queues as $queue_name => $queue_info) {
+      // Add default values.
+      $queue_info += array(
+        'delete when completed' => TRUE,
+      );
+
       $queue = DrupalQueue::get($queue_name);
 
       if ($item = $queue->claimItem()) {
-        drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item);
+        drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
         continue 2;
       }
     }
 
-    // Not item processed in that round, let the CPU rest.
+    // No item processed in that round, let the CPU rest.
     sleep(1);
   }
 
   drush_log(dt('Timeout: exiting processing loop.'));
 }
 
-function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item) {
+/**
+ * Process a queue item.
+ *
+ * @param $queue
+ *   The queue object.
+ * @param $queue_name
+ *   The queue name.
+ * @param $queue_info
+ *   The queue info.
+ * @param $item
+ *   The item to process.
+ * @param $end_time
+ *   (Optional) The time the process should end.
+ */
+function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end_time = FALSE) {
   $function = $queue_info['worker callback'];
-  drush_log(dt('[!queue:!id] Starting processing item (!item).', array('!queue' => $queue_name, '!id' => $item->item_id, '!item' => json_encode($item->data))));
+  $params =  array(
+    '@queue' => $queue_name,
+    '@id' => $item->item_id,
+    '@title' => $item->title ? $item->title : dt('untitled'),
+  );
+  drush_log(dt('[@queue:@id] Starting processing item @title.', $params));
 
   try {
-    $output = $function($item->data);
+    // Pass the claimed item itself and end date along to the worker
+    // callback.
+    $output = $function($item, $end_time);
     if (is_array($output)) {
       $item->status = $output[0];
       $item->result = $output[1];
@@ -87,11 +117,16 @@ function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $ite
     }
   }
   catch (Exception $e) {
-    drush_log(dt('[!queue:!id] failed processing: !message', array('!queue' => $queue_name, '!id' => $item->item_id, '!message' => (string) $e)));
+    $params['!message'] = (string) $e;
+    drush_log(dt('[!queue:!id] failed processing: !message', $params));
     // TODO: remove magic constants.
     $item->status = 2;
   }
 
-  drush_log(dt('[!queue:!id] Processing ended.', array('!queue' => $queue_name, '!id' => $item->item_id, '!item' => json_encode($item->data))));
-  $queue->deleteItem($item);
+  drush_log(dt('[@queue:@id] Processing ended.', $params));
+
+  if ($queue_info['delete when completed']) {
+    // Item was processed, so we can delete it.
+    $queue->deleteItem($item);
+  }
 }

@@ -4,9 +4,9 @@
  * Implementation of hook_enable().
  */
 function advancedqueue_enable() {
-  if (variable_get('queue_default_class', NULL) === NULL) {
+  if (variable_get('queue_default_reliable_class', NULL) === NULL) {
     // Take ownership of all the queues.
-    variable_set('queue_default_class', 'AdvancedQueue');
+    variable_set('queue_default_reliable_class', 'AdvancedQueue');
   }
 }
 
@@ -14,9 +14,9 @@ function advancedqueue_enable() {
  * Implementation of hook_disable().
  */
 function advancedqueue_disable() {
-  if (variable_get('queue_default_class', NULL) === 'AdvancedQueue') {
+  if (variable_get('queue_default_reliable_class', NULL) === 'AdvancedQueue') {
     // Let the queues run free.
-    variable_del('queue_default_class', 'AdvancedQueue');
+    variable_del('queue_default_reliable_class', 'AdvancedQueue');
   }
 }
 

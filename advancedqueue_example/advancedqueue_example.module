@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Example module for Advanced Queues module.
+ */
+
+/**
+ * Implements hook_advanced_queue_info().
+ */
+function advancedqueue_example_advanced_queue_info() {
+  $items['example_queue'] = array(
+    'worker callback' => 'advancedqueue_example_worker',
+  );
+  return $items;
+}
+
+/**
+ * Advanced queue worker; Process a queue item.
+ *
+ * @param $item
+ *   The item object to process.
+ * @param $end_time
+ *   (Optional) The time this process should end.
+ */
+function advancedqueue_example_worker($item, $end_time = FALSE) {
+  $data = $item->data;
+  $params = array(
+    '@id' => $item->item_id,
+    '@uid' => $data['uid'],
+    '@time' => date('r', $data['timestamp']),
+  );
+  drush_print(dt('The "worker" is now processing a example task number @id for user ID @uid created at @time.', $params));
+}
+
+/**
+ * Implements hook_init().
+ *
+ * Create dummy queue items.
+ */
+function advancedqueue_example_init() {
+  global $user;
+  $queue = DrupalQueue::get('example_queue', TRUE);
+  $task = array(
+    'timestamp' => time(),
+    'uid' => $user->uid,
+  );
+  $queue->createItem($task);
+}
