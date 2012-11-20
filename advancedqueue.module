@@ -8,7 +8,7 @@
 /**
  * Status indicating item was added to the queue.
  */
-define('ADVANCEDQUEUE_STATUS_IN_QUEUE', -1);
+define('ADVANCEDQUEUE_STATUS_QUEUED', -1);
 
 /**
  * Status indicating item is currently being processed.
