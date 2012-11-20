@@ -16,7 +16,7 @@ function advancedqueue_drush_command() {
       'queue' => dt('The name of the queue to process.'),
     ),
     'options' => array(
-      'timeout' => 'The maximum execution time of the script.',
+      'timeout' => 'The maximum execution time of the script. Be warned that this is a rough estimate as the time is only checked between two items.',
       'all' => 'Process all queues.',
     ),
   );
