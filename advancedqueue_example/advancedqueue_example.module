@@ -31,6 +31,7 @@ function advancedqueue_example_worker($item, $end_time = FALSE) {
     '@time' => date('r', $data['timestamp']),
   );
   drush_print(dt('The "worker" is now processing a example task number @id for user ID @uid created at @time.', $params));
+  return TRUE;
 }
 
 /**
