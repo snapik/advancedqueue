@@ -70,7 +70,7 @@ function advancedqueue_schema() {
         'not null' => FALSE,
         'size' => 'big',
         'serialize' => TRUE,
-        'description' => 'The arbitrary result for the item, only significant if {redisqueue}.status <> 0',
+        'description' => 'The arbitrary result for the item, only significant if {advancedqueue}.status <> 0',
       ),
       'expire' => array(
         'type' => 'int',
