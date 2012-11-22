@@ -122,7 +122,8 @@ function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $ite
     drush_log(dt('[!queue:!id] failed processing: !message', $params));
   }
 
-  drush_log(dt('[@queue:@id] Processing ended.', $params));
+  $params['@status'] = $item->status;
+  drush_log(dt('[@queue:@id] Processing ended with result @status.', $params));
 
   if ($queue_info['delete when completed']) {
     // Item was processed, so we can "delete" it. This is not removing the

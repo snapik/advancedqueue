@@ -22,6 +22,10 @@ function advancedqueue_example_advanced_queue_info() {
  *   The item object to process.
  * @param $end_time
  *   (Optional) The time this process should end.
+ *
+ * @return
+ *   Boolean indicating if the process successded, or an array with
+ *   "status" and "result" keys.
  */
 function advancedqueue_example_worker($item, $end_time = FALSE) {
   $data = $item->data;
@@ -31,7 +35,17 @@ function advancedqueue_example_worker($item, $end_time = FALSE) {
     '@time' => date('r', $data['timestamp']),
   );
   drush_print(dt('The "worker" is now processing a example task number @id for user ID @uid created at @time.', $params));
-  return TRUE;
+
+  // For example purposes we will return an array with detailed message
+  // for odd item IDs, and boolean for even ones.
+  if ($item->item_id % 2) {
+    return TRUE;
+  }
+
+  return array(
+    'status' => ADVANCEDQUEUE_STATUS_SUCCESS,
+    'result' => 'Processed ' . $item->item_id,
+  );
 }
 
 /**
