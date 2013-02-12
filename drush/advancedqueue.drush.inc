@@ -41,8 +41,7 @@ function drush_advancedqueue_process_queue($queue = NULL) {
   else {
     // Validate queues.
     $queues = drupal_map_assoc(explode(',', $queue));
-    $invalid_queues = array_diff_key($queues, $queues_info);
-    if ($invalid_queues) {
+    if ($invalid_queues = array_diff_key($queues, $queues_info)) {
       return drush_set_error(dt('The following queues are invalid: !queues. Aborting.', array('!queues' => implode(', ', $invalid_queues))));
     }
     $queues = array_intersect_key($queues_info, $queues);
