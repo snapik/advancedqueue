@@ -26,9 +26,8 @@ function advancedqueue_drush_command() {
 
 function drush_advancedqueue_process_queue($queue = NULL) {
   // Load information about the registred queues, and sort them by weight.
-  $all_queue_info = module_invoke_all('advanced_queue_info');
-  drupal_alter('advanced_queue_info', $all_queue_info);
-  uasort($all_queue_info, 'drupal_sort_weight');
+  $queues_info = advancedqueue_get_queues_info();
+  drupal_alter('advanced_queue_info', $queues_info);
 
   $all_option = drush_get_option('all');
   if (!$all_option && empty($queue)) {
@@ -36,16 +35,16 @@ function drush_advancedqueue_process_queue($queue = NULL) {
   }
 
   if ($all_option) {
-    $queues = $all_queue_info;
+    $queues = $queues_info;
   }
   else {
     // Validate queues.
     $queues = drupal_map_assoc(explode(',', $queue));
-    $invalid_queues = array_diff_key($queues, $all_queue_info);
+    $invalid_queues = array_diff_key($queues, $queues_info);
     if ($invalid_queues) {
       return drush_set_error(dt('The following queues are invalid: !queues. Aborting.', array('!queues' => implode(', ', $invalid_queues))));
     }
-    $queues = array_intersect_key($all_queue_info, $queues);
+    $queues = array_intersect_key($queues_info, $queues);
   }
 
   if (!$queues) {

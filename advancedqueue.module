@@ -89,6 +89,7 @@ function advancedqueue_get_queues_info($queue_names = array()) {
   if (empty($queues_info)) {
     $queues_info = module_invoke_all('advanced_queue_info');
     drupal_alter('advanced_queue_info', $queues_info);
+    uasort($queues_info, 'drupal_sort_weight');
   }
 
   if ($queue_names) {
