@@ -26,8 +26,9 @@ function advancedqueue_drush_command() {
 
 function drush_advancedqueue_process_queue($queue = NULL) {
   // Load information about the registred queues, and sort them by weight.
-  $queues_info = advancedqueue_get_queues_info();
-  drupal_alter('advanced_queue_info', $queues_info);
+  if (!$queues_info = advancedqueue_get_queues_info()) {
+    return drush_set_error(dt('No queues exist.'));
+  }
 
   $all_option = drush_get_option('all');
   if (!$all_option && empty($queue)) {
@@ -45,10 +46,6 @@ function drush_advancedqueue_process_queue($queue = NULL) {
       return drush_set_error(dt('The following queues are invalid: !queues. Aborting.', array('!queues' => implode(', ', $invalid_queues))));
     }
     $queues = array_intersect_key($queues_info, $queues);
-  }
-
-  if (!$queues) {
-    return drush_set_error(dt('No queues exist.'));
   }
 
   // Run the worker for a certain period of time before killing it.
