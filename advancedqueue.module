@@ -26,13 +26,18 @@ define('ADVANCEDQUEUE_STATUS_SUCCESS', 1);
 define('ADVANCEDQUEUE_STATUS_FAILURE', 2);
 
 /**
- * Implements hook_views_api().
+ * Implements hook_menu().
  */
-function advancedqueue_views_api() {
-  return array(
-    'api' => 2,
-    'path' => drupal_get_path('module', 'advancedqueue') . '/views',
+function advancedqueue_menu() {
+  $items = array();
+  $items['admin/config/advanced-queue'] = array(
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/advancedqueue.admin.inc',
+    'page callback' => 'advancedqueue_admin_settings',
+    'title' => 'Advanced-Queue Settings',
   );
+
+  return $items;
 }
 
 /**
@@ -55,7 +60,7 @@ function advancedqueue_entity_info() {
  * Implements hook_cron().
  */
 function advancedqueue_cron() {
-  if (!$queue_names = variable_get('advancedqueue_use_cron', array())) {
+  if (!$queue_names = variable_get('advancedqueue_queue_names', array())) {
     return;
   }
 
@@ -63,6 +68,7 @@ function advancedqueue_cron() {
     return;
   }
 
+  // @todo: Add variable to set interval?
   $end = time() + 60;
   foreach ($queues as $queue_name => $queue_info) {
     $queue = DrupalQueue::get($queue_name);
@@ -150,3 +156,14 @@ function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $ite
     $queue->deleteItem($item);
   }
 }
+
+/**
+ * Implements hook_views_api().
+ */
+function advancedqueue_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'advancedqueue') . '/views',
+  );
+}
+

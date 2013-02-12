@@ -10,6 +10,7 @@
  */
 function advancedqueue_example_advanced_queue_info() {
   $items['example_queue'] = array(
+    'label' => t('Example queue'),
     'worker callback' => 'advancedqueue_example_worker',
   );
   return $items;
