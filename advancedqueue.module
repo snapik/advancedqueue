@@ -55,14 +55,13 @@ function advancedqueue_entity_info() {
  * Implements hook_cron().
  */
 function advancedqueue_cron() {
-  if (!$queues = variable_get('advancedqueue_use_cron', array())) {
+  if (!$queue_names = variable_get('advancedqueue_use_cron', array())) {
     return;
   }
 
-  $all_queue_info = module_invoke_all('advanced_queue_info');
-  drupal_alter('advanced_queue_info', $all_queue_info);
-
-  $queues = array_intersect_key($all_queue_info, $queues);
+  if (!$queues = advancedqueue_get_queues_info($queue_names)) {
+    return;
+  }
 
   $end = time() + 60;
   foreach ($queues as $queue_name => $queue_info) {
@@ -76,4 +75,25 @@ function advancedqueue_cron() {
       drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
     }
   }
+}
+
+/**
+ * Return queue(s) info.
+ *
+ * @params $queue_names
+ *   Optional; Array with the queue names. If empty, return all the queues.
+ */
+function advancedqueue_get_queues_info($queue_names = array()) {
+  $queues_info = &drupal_static(__FUNCTION__, array());
+
+  if (empty($queues_info)) {
+    $queues_info = module_invoke_all('advanced_queue_info');
+    drupal_alter('advanced_queue_info', $queues_info);
+  }
+
+  if ($queue_names) {
+    return array_intersect_key($queues_info, $queue_names);
+  }
+
+  return $queues_info;
 }
