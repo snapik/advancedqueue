@@ -13,7 +13,7 @@ function advancedqueue_admin_settings($form_state) {
 
   $options = array();
   foreach (advancedqueue_get_queues_info() as $queue_name => $queue_info) {
-    $label = !empty($queue_info['label']) ? $queue_info['label'] : $queue_name;
+    $label = !empty($queue_info['label']) ? $queue_info['label'] . ' (' . $queue_name . ')'  : $queue_name;
     $options[$queue_name] = check_plain($label);
   }
 

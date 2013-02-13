@@ -63,7 +63,7 @@ function drush_advancedqueue_process_queue($queue = NULL) {
       $queue = DrupalQueue::get($queue_name);
 
       if ($item = $queue->claimItem()) {
-        drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
+        advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
         continue 2;
       }
     }

@@ -80,7 +80,7 @@ function advancedqueue_cron() {
         // We've reached max execution time.
         return;
       }
-      drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
+      advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
     }
   }
 }
@@ -96,6 +96,13 @@ function advancedqueue_get_queues_info($queue_names = array()) {
 
   if (empty($queues_info)) {
     $queues_info = module_invoke_all('advanced_queue_info');
+
+    // Add default values.
+    foreach ($queues_info as &$queue_info) {
+      $queue_info += array(
+        'delete when completed' => TRUE,
+      );
+    }
     drupal_alter('advanced_queue_info', $queues_info);
     uasort($queues_info, 'drupal_sort_weight');
   }
@@ -122,14 +129,15 @@ function advancedqueue_get_queues_info($queue_names = array()) {
  * @param $end_time
  *   (Optional) The time the process should end.
  */
-function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end_time = FALSE) {
+function advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end_time = FALSE) {
   $function = $queue_info['worker callback'];
   $params =  array(
     '@queue' => $queue_name,
     '@id' => $item->item_id,
-    '@title' => !empty($item->title) ? $item->title : dt('untitled'),
+    '@title' => !empty($item->title) ? $item->title : 'untitled',
   );
-  drush_log(dt('[@queue:@id] Starting processing item @title.', $params));
+
+  advancedqueue_log_message(format_string('[@queue:@id] Starting processing item @title.', $params));
 
   try {
     // Pass the claimed item itself and end date along to the worker
@@ -146,16 +154,31 @@ function drush_advancedqueue_process_item($queue, $queue_name, $queue_info, $ite
   catch (Exception $e) {
     $item->status = ADVANCEDQUEUE_STATUS_FAILURE;
     $params['!message'] = (string) $e;
-    drush_log(dt('[!queue:!id] failed processing: !message', $params));
+    advancedqueue_log_message(format_string('[!queue:!id] failed processing: !message', $params));
   }
 
   $params['@status'] = $item->status;
-  drush_log(dt('[@queue:@id] Processing ended with result @status.', $params));
+  advancedqueue_log_message(format_string('[@queue:@id] Processing ended with result @status.', $params));
 
   if ($queue_info['delete when completed']) {
     // Item was processed, so we can "delete" it. This is not removing the
     // item from the database, but rather updates it with the status.
     $queue->deleteItem($item);
+  }
+}
+
+/**
+ * Helper function to log message. In CLI we use Drush Log, otherwise watchdog.
+ *
+ * @param $message
+ *   The message to log.
+ */
+function advancedqueue_log_message($message) {
+  if (drupal_is_cli()) {
+    drush_log($message);
+  }
+  else {
+    watchdog('advancedqueue', $message);
   }
 }
 
