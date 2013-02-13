@@ -30,11 +30,13 @@ define('ADVANCEDQUEUE_STATUS_FAILURE', 2);
  */
 function advancedqueue_menu() {
   $items = array();
-  $items['admin/config/advanced-queue'] = array(
-    'type' => MENU_CALLBACK,
+  $items['admin/config/system/advanced-queue'] = array(
     'file' => 'includes/advancedqueue.admin.inc',
-    'page callback' => 'advancedqueue_admin_settings',
-    'title' => 'Advanced-Queue Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('advancedqueue_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'title' => 'Advanced queue',
+    'description' => 'Manage Advanced queue settings.'
   );
 
   return $items;

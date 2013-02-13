@@ -19,10 +19,10 @@ function advancedqueue_admin_settings($form_state) {
 
   $form['advancedqueue_queue_names'] = array(
     '#type' => 'select',
-    '#title' => t('Queues'),
+    '#title' => t('Queues via Cron'),
     '#multiple' => TRUE,
-    '#description' => t('Select the queues that need to be processed.'),
-    '#default_value' => variable_get('og_group_manager_full_access', TRUE),
+    '#description' => t('Select the queues that need to be processed using Cron. This is a "poor man\'s" option that allows processing the queue, as the better solution would be to execute the Drush command vit the command line.'),
+    '#default_value' => variable_get('advancedqueue_queue_names', array()),
     '#options' => $options,
   );
 
