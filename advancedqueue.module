@@ -49,7 +49,7 @@ function advancedqueue_cron() {
     return;
   }
 
-  if (!$queues = advancedqueue_get_queues_info($queue_names)) {
+  if (!$queues = advancedqueue_get_queues_info()) {
     return;
   }
 
