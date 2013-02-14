@@ -26,23 +26,6 @@ define('ADVANCEDQUEUE_STATUS_SUCCESS', 1);
 define('ADVANCEDQUEUE_STATUS_FAILURE', 2);
 
 /**
- * Implements hook_menu().
- */
-function advancedqueue_menu() {
-  $items = array();
-  $items['admin/config/system/advanced-queue'] = array(
-    'file' => 'includes/advancedqueue.admin.inc',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('advancedqueue_admin_settings'),
-    'access arguments' => array('administer site configuration'),
-    'title' => 'Advanced queue',
-    'description' => 'Manage Advanced queue settings.'
-  );
-
-  return $items;
-}
-
-/**
  * Implements hook_advancedqueue_entity_info().
  */
 function advancedqueue_entity_info() {
@@ -62,7 +45,7 @@ function advancedqueue_entity_info() {
  * Implements hook_cron().
  */
 function advancedqueue_cron() {
-  if (!$queue_names = variable_get('advancedqueue_queue_names', array())) {
+  if (!variable_get('advancedqueue_use_cron', TRUE)) {
     return;
   }
 
@@ -83,6 +66,21 @@ function advancedqueue_cron() {
       advancedqueue_process_item($queue, $queue_name, $queue_info, $item, $end);
     }
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add Advanced queue setting to use cron, to the cron settings page.
+ */
+function advancedqueue_form_system_cron_settings_alter(&$form, $form_state, $form_id) {
+  $form['advancedqueue_use_cron'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Process Advanced Queue via Cron'),
+    '#multiple' => TRUE,
+    '#description' => t('Enable to allow queue items to to be processed using Cron. This is a "poor man\'s" option that allows processing the queue, as the better solution would be to execute the Drush command via the command line.'),
+    '#default_value' => variable_get('advancedqueue_use_cron', array()),
+  );
 }
 
 /**
