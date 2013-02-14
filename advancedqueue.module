@@ -79,7 +79,7 @@ function advancedqueue_form_system_cron_settings_alter(&$form, $form_state, $for
     '#title' => t('Process Advanced Queue via Cron'),
     '#multiple' => TRUE,
     '#description' => t('Enable to allow queue items to to be processed using Cron. This is a "poor man\'s" option that allows processing the queue, as the better solution would be to execute the Drush command via the command line.'),
-    '#default_value' => variable_get('advancedqueue_use_cron', array()),
+    '#default_value' => variable_get('advancedqueue_use_cron', TRUE),
   );
 }
 
